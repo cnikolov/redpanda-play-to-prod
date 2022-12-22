@@ -1,0 +1,10 @@
+{
+  "type" : "record",
+  "name" : "numberModel",
+  "fields" : [{
+      "name" : "number",
+      "type" : "int",
+      "doc"  : "Just a number that will increase overtime."
+    }
+  ]
+}
