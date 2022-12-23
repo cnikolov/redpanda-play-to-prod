@@ -78,6 +78,30 @@ services:
       STATUS_STORAGE_TOPIC: "inventory.status"
     ports:
       - 8083:8083
+  connect1:
+    image: my-custom-image:1.0.0
+    container_name: confluent-connect
+    depends_on:
+      - redpanda1
+      - redpanda2
+      - redpanda3
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "redpanda1:9092,redpanda2:9092,redpanda3:9092"
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: _connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_LOG4J_APPENDER_STDOUT_LAYOUT_CONVERSIONPATTERN: "[%d] %p %X{connector.context}%m (%c:%L)%n"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+    ports:
+      - 18083:8083
   mysql:
     image: debezium/example-mysql
     container_name: debezium-mysql
@@ -126,6 +150,8 @@ services:
           clusters:
             - name: kafka-connect
               url: http://connect:8083
+            - name: custom-connect
+              url: http://connect1:8083
           connectTimeout: 15s
           readTimeout: 60s
           requestTimeout: 6s
@@ -136,4 +162,5 @@ services:
       - redpanda2
       - redpanda3
       - connect
+      - connect1
       - mysql
